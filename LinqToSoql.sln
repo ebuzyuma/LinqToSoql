@@ -5,7 +5,7 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqToSoql", "LinqToSoql\LinqToSoql.csproj", "{DD8A4CE4-D4C9-4EF2-B084-66427BDA262D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqToSoql.EnterpriseDemo", "LinqToSoql.EnterpriseDemo\LinqToSoql.EnterpriseDemo.csproj", "{B5F119A9-341F-4F89-B02B-0779714FF82A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqToSoql.Tests", "LinqToSoql.Tests\LinqToSoql.Tests.csproj", "{1972390D-C143-43F9-84FB-ABC86944AC1A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{DD8A4CE4-D4C9-4EF2-B084-66427BDA262D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD8A4CE4-D4C9-4EF2-B084-66427BDA262D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD8A4CE4-D4C9-4EF2-B084-66427BDA262D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B5F119A9-341F-4F89-B02B-0779714FF82A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B5F119A9-341F-4F89-B02B-0779714FF82A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B5F119A9-341F-4F89-B02B-0779714FF82A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B5F119A9-341F-4F89-B02B-0779714FF82A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1972390D-C143-43F9-84FB-ABC86944AC1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1972390D-C143-43F9-84FB-ABC86944AC1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1972390D-C143-43F9-84FB-ABC86944AC1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1972390D-C143-43F9-84FB-ABC86944AC1A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

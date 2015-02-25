@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("LinqToSoql.EnterpriseDemo")]
+[assembly: AssemblyTitle("LinqToSoql.Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("LinqToSoql.EnterpriseDemo")]
+[assembly: AssemblyProduct("LinqToSoql.Tests")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("e7a9fa74-49a7-45bc-bfe6-293dd170bd3d")]
+[assembly: Guid("1dcc91fe-6522-4813-bc35-0993ddc51eb3")]
 
 // Version information for an assembly consists of the following four values:
 //

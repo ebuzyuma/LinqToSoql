@@ -4,13 +4,13 @@ using System.Linq;
 using System.Linq.Expressions;
 using LinqToSoql.Visitors;
 
-namespace LinqToSoql
+namespace LinqToSoql.Sforce
 {
     public class SforceQueryProvider : QueryProvider
     {
-        private readonly ISforceContext _context;
+        private readonly SforceContext _context;
 
-        public SforceQueryProvider(ISforceContext context)
+        public SforceQueryProvider(SforceContext context)
         {
             _context = context;
         }
