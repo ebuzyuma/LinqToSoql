@@ -42,6 +42,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Evaluator.cs" />
+    <Compile Include="Expressions\ColumnDeclaration.cs" />
+    <Compile Include="Expressions\ColumnExpression.cs" />
+    <Compile Include="Expressions\DbExpressionType.cs" />
+    <Compile Include="Expressions\ProjectionExpression.cs" />
+    <Compile Include="Expressions\SelectExpression.cs" />
+    <Compile Include="Expressions\TableExpression.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -52,10 +58,17 @@
     <Compile Include="QueryProvider.cs" />
     <Compile Include="Sforce\SforceQueryProvider.cs" />
     <Compile Include="Sforce\SforceContext.cs" />
+    <Compile Include="TranslateResult.cs" />
     <Compile Include="TypeSystem.cs" />
     <Compile Include="Visitors\ColumnProjector.cs" />
+    <Compile Include="Visitors\DbExpressionVisitor.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Visitors\ExpressionVisitor.cs" />
-    <Compile Include="Visitors\QueryTranslator.cs" />
+    <Compile Include="Visitors\ProjectionBuilder.cs" />
+    <Compile Include="Visitors\QueryBinder.cs" />
+    <Compile Include="Visitors\QueryFormatter.cs" />
+    <Compile Include="Visitors\UnusedColumnRemover.cs" />
     <Compile Include="Web References\PartnerSforce\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

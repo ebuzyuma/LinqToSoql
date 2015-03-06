@@ -1,68 +1,151 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 using System.Text;
+using LinqToSoql.Expressions;
 using ExpressionVisitor = LinqToSoql.Visitors.ExpressionVisitor;
 
 namespace LinqToSoql.Visitors
 {
-    internal class ColumnProjector : ExpressionVisitor
+    internal sealed class ProjectedColumns
     {
-        private StringBuilder _stringBuilder;
+        public Expression Projector { get; private set; }
+        public ReadOnlyCollection<ColumnDeclaration> Columns { get; private set; }
 
-        internal ColumnProjector()
+        internal ProjectedColumns(Expression projector, ReadOnlyCollection<ColumnDeclaration> columns)
         {
+            Projector = projector;
+            Columns = columns;
+        }
+    }
+
+    internal class ColumnProjector : DbExpressionVisitor
+    {
+        private readonly Nominator _nominator;
+        private Dictionary<ColumnExpression, ColumnExpression> _map;
+        private List<ColumnDeclaration> _columns;
+        private HashSet<string> _columnNames;
+        private HashSet<Expression> _candidates;
+        private string _existingAlias;
+        private string _newAlias;
+        private int _iColumn;
+
+        public ColumnProjector(Func<Expression, bool> fnCanBeColumn)
+        {
+            _nominator = new Nominator(fnCanBeColumn);
         }
 
-        internal string ProjectColumns(Expression expression)
+        public ProjectedColumns ProjectColumns(Expression expression, string newAlias, string existingAlias)
         {
-            _stringBuilder = new StringBuilder();
-            Visit(expression);
-            return _stringBuilder.ToString();
+            _map = new Dictionary<ColumnExpression, ColumnExpression>();
+            _columns = new List<ColumnDeclaration>();
+            _columnNames = new HashSet<string>();
+            _newAlias = newAlias;
+            _existingAlias = existingAlias;
+            _candidates = _nominator.Nominate(expression);
+            return new ProjectedColumns(Visit(expression), _columns.AsReadOnly());
         }
 
-        protected override Expression VisitMemberAccess(MemberExpression m)
+        protected override Expression Visit(Expression expression)
         {
-            Visit(m.Expression);
-            Type type = m.Member.ReflectedType;
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof (Nullable<>))
-                return m;
-
-            _stringBuilder.Append(".");
-            _stringBuilder.Append(m.Member.Name);
-
-            return m;
-        }
-
-        protected override Expression VisitParameter(ParameterExpression p)
-        {
-            if (_stringBuilder.Length > 0)
-                _stringBuilder.Append(", ");
-            _stringBuilder.Append(p.Type.Name);
-            return p;
-        }
-        
-        /*
-        protected override ReadOnlyCollection<Expression> VisitExpressionList(ReadOnlyCollection<Expression> original)
-        {
-            for (int i = 0, n = original.Count; i < n - 1; i++)
+            if (_candidates.Contains(expression))
             {
-                this.Visit(original[i]);
-                _stringBuilder.Append(", ");
+                if (expression.NodeType == (ExpressionType) DbExpressionType.Column)
+                {
+                    ColumnExpression column = (ColumnExpression) expression;
+                    ColumnExpression mapped;
+                    if (_map.TryGetValue(column, out mapped))
+                    {
+                        return mapped;
+                    }
+                    if (_existingAlias == column.Alias)
+                    {
+                        string columnName = GetUniqueColumnName(column.Name);
+                        _columns.Add(new ColumnDeclaration(columnName, column));
+                        mapped = new ColumnExpression(column.Type, _newAlias, columnName);
+                        _map[column] = mapped;
+                        _columnNames.Add(columnName);
+                        return mapped;
+                    }
+                    // must be referring to outer scope
+                    return column;
+                }
+                else
+                {
+                    string columnName = GetNextColumnName();
+                    _columns.Add(new ColumnDeclaration(columnName, expression));
+                    return new ColumnExpression(expression.Type, _newAlias, columnName);
+                }
             }
-            this.Visit(original.Last());
-            return original;
+            else
+            {
+                return base.Visit(expression);
+            }
         }
 
-        protected override IEnumerable<MemberBinding> VisitBindingList(ReadOnlyCollection<MemberBinding> original)
+        private bool IsColumnNameInUse(string name)
         {
-            for (int i = 0, n = original.Count; i < n - 1; i++)
-            {
-                this.VisitBinding(original[i]);
-                _stringBuilder.Append(", ");
-            }
-            this.VisitBinding(original.Last());
-            return original;
+            return _columnNames.Contains(name);
         }
-        */
+
+        private string GetUniqueColumnName(string name)
+        {
+            string baseName = name;
+            int suffix = 1;
+            while (IsColumnNameInUse(name))
+            {
+                name = baseName + (suffix++);
+            }
+            return name;
+        }
+
+        private string GetNextColumnName()
+        {
+            return GetUniqueColumnName("c" + (_iColumn++));
+        }
+
+        private class Nominator : DbExpressionVisitor
+        {
+            private readonly Func<Expression, bool> _fnCanBeColumn;
+            private bool _isBlocked;
+            private HashSet<Expression> _candidates;
+
+            internal Nominator(Func<Expression, bool> fnCanBeColumn)
+            {
+                _fnCanBeColumn = fnCanBeColumn;
+            }
+
+            internal HashSet<Expression> Nominate(Expression expression)
+            {
+                _candidates = new HashSet<Expression>();
+                _isBlocked = false;
+                Visit(expression);
+                return _candidates;
+            }
+
+            protected override Expression Visit(Expression expression)
+            {
+                if (expression != null)
+                {
+                    bool saveIsBlocked = _isBlocked;
+                    _isBlocked = false;
+                    base.Visit(expression);
+                    if (!_isBlocked)
+                    {
+                        if (_fnCanBeColumn(expression))
+                        {
+                            _candidates.Add(expression);
+                        }
+                        else
+                        {
+                            _isBlocked = true;
+                        }
+                    }
+                    _isBlocked |= saveIsBlocked;
+                }
+                return expression;
+            }
+        }
     }
 }
