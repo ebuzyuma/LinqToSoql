@@ -177,7 +177,7 @@ namespace LinqToSoql.Visitors
             if (select.Where != null)
             {
                 AppendNewLine(Identation.Same);
-                _stringBuilder.Append("WHERE");
+                _stringBuilder.Append("WHERE ");
                 Visit(select.Where);
             }
             return select;

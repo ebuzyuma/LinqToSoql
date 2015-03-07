@@ -68,7 +68,11 @@
     <Compile Include="Visitors\ProjectionBuilder.cs" />
     <Compile Include="Visitors\QueryBinder.cs" />
     <Compile Include="Visitors\QueryFormatter.cs" />
-    <Compile Include="Visitors\UnusedColumnRemover.cs" />
+    <Compile Include="Visitors\RedundantSubqueryRemover.cs" />
+    <Compile Include="Visitors\SubqueryRemover.cs" />
+    <Compile Include="Visitors\UnusedColumnRemover.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Web References\PartnerSforce\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
