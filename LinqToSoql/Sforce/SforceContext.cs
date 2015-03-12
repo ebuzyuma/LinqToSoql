@@ -60,12 +60,12 @@ namespace LinqToSoql.Sforce
             return new Query<TModel>(_queryProvider);
         }
 
-        public IEnumerable<TResult> ExecuteSoqlQuery<TModel, TResult>(string query, Func<TModel, TResult> projector) where TModel : class, new()
+        public IEnumerable<TResult> ExecuteSoqlQuery<TResult>(string query, Func<sObject, TResult> projector)
         {
-            //TODO add Enumerator
+            //TODO add Enumerator            
             QueryResult qr = _binding.queryAll(query);
-            var res = qr.records.Select(Map<TModel>);
-            return res.Select(projector);
+            var res = qr.records.Select(projector);
+            return res;
         }
 
         private T Map<T>(sObject obj) where T : class, new()

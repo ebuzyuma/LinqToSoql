@@ -10,17 +10,25 @@ namespace LinqToSoql.Visitors
 {
     internal class QueryBinder : ExpressionVisitor
     {
-        private ColumnProjector _columnProjector;
+        private readonly ColumnProjector _columnProjector;
         private Dictionary<ParameterExpression, Expression> _map;
         private int _aliasCount;
+        private readonly IQueryProvider _provider;
 
-        public QueryBinder(SforceQueryProvider sforceQueryProvider)
+        public QueryBinder(IQueryProvider provider)
         {
+            _provider = provider;
             _columnProjector = new ColumnProjector(CanBeColumn);
         }
 
         private bool CanBeColumn(Expression expression)
         {
+            MemberExpression memberExpression = expression as MemberExpression;
+            if (memberExpression != null)
+            {
+                return CanBeColumn(memberExpression.Expression);
+            }
+
             return expression.NodeType == (ExpressionType)DbExpressionType.Column;
         }
 
@@ -61,7 +69,7 @@ namespace LinqToSoql.Visitors
                     case "Select":
                         return BindSelect(m.Type, m.Arguments[0], (LambdaExpression)StripQuotes(m.Arguments[1]));
                 }
-                throw new NotSupportedException(string.Format("The method '{0}' is not supported", m.Method.Name));
+                throw new NotSupportedException(string.Format("The method '{0}' is not supported!", m.Method.Name));
             }
             return base.VisitMethodCall(m);
         }
@@ -108,7 +116,7 @@ namespace LinqToSoql.Visitors
         private bool IsTable(object value)
         {
             IQueryable q = value as IQueryable;
-            return q != null && q.Expression.NodeType == ExpressionType.Constant;
+            return q != null && q.Provider == _provider && q.Expression.NodeType == ExpressionType.Constant;
         }
 
         private string GetTableName(object table)

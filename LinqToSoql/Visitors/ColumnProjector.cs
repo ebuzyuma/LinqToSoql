@@ -146,6 +146,15 @@ namespace LinqToSoql.Visitors
                 }
                 return expression;
             }
+
+            protected override Expression VisitMemberAccess(MemberExpression m)
+            {
+                if (_fnCanBeColumn(m.Expression))
+                {
+                    return m;
+                }
+                return base.VisitMemberAccess(m);
+            }
         }
     }
 }

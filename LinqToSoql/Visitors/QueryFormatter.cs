@@ -160,12 +160,14 @@ namespace LinqToSoql.Visitors
                 {
                     _stringBuilder.Append(", ");
                 }
-                ColumnExpression cex = Visit(column.Expression) as ColumnExpression;
-                if (cex == null || cex.Name != select.Columns[i].Name)
-                {
-                    _stringBuilder.Append(" AS ");
-                    _stringBuilder.Append(column.Name);
-                }
+
+                Visit(column.Expression);
+                //ColumnExpression cex = Visit(column.Expression) as ColumnExpression;
+                //if (cex == null || cex.Name != select.Columns[i].Name)
+                //{
+                    //_stringBuilder.Append(" AS ");
+                    //_stringBuilder.Append(column.Name);
+                //}
 
             }
             if (select.From != null)
@@ -181,6 +183,14 @@ namespace LinqToSoql.Visitors
                 Visit(select.Where);
             }
             return select;
+        }
+
+        protected override Expression VisitMemberAccess(MemberExpression m)
+        {
+            Visit(m.Expression);
+            _stringBuilder.Append(".");
+            _stringBuilder.Append(m.Member.Name);
+            return m;
         }
 
         protected override Expression VisitSource(Expression source)

@@ -29,8 +29,7 @@ namespace LinqToSoql.Sforce
                 projection = (ProjectionExpression)expression;
             }
             string commandText = new QueryFormatter().Format(projection.Source);
-            var elementType = TypeSystem.GetElementType(projection.Source.From.Type);
-            LambdaExpression projector = new ProjectionBuilder().Build(elementType, projection.Projector);
+            LambdaExpression projector = new ProjectionBuilder().Build(projection);
             return new TranslateResult { CommandText = commandText, Projector = projector };
         }
 
@@ -51,16 +50,9 @@ namespace LinqToSoql.Sforce
 
             Delegate projector = result.Projector.Compile();
 
-            Type elementType = result.Projector.Parameters[0].Type;
-            List<Type> parameters = new List<Type>
-                                    {
-                                        elementType,
-                                        result.Projector.ReturnType
-                                    };
-
             var executeMethod = _context.GetType()
                                 .GetMethod("ExecuteSoqlQuery")
-                                .MakeGenericMethod(parameters.ToArray());
+                                .MakeGenericMethod(result.Projector.ReturnType);
             return executeMethod.Invoke(_context, new object[] { result.CommandText, projector });
         }
     }
