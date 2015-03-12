@@ -46,15 +46,21 @@ namespace LinqToSoql.Visitors
                 return Visit(sourceColumn);
             }
             return 
-                Expression.Convert(
+                Convert(
                     Expression.Call(_row, _miGetValue, Expression.Constant(column.Name)),
                     column.Type);
+        }
+
+        private Expression Convert(Expression e, Type typeToConvert)
+        {
+            var changedType = Expression.Call(typeof (Convert), "ChangeType", null, 
+                e, Expression.Constant(typeToConvert));
+            return Expression.Convert(changedType, typeToConvert);
         }
 
         protected override Expression VisitMemberAccess(MemberExpression m)
         {
             Expression source;
-            Type type;
             ColumnExpression column = m.Expression as ColumnExpression;
             if (column == null)
             {
@@ -67,7 +73,13 @@ namespace LinqToSoql.Visitors
                     typeof (sObject));
 
             }
-            return Expression.Convert(
+
+            /*Type type = m.Type;
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                type = Nullable.GetUnderlyingType(m.Type);
+            }*/
+            return Convert(
                 Expression.Call(source, _miGetValue, Expression.Constant(m.Member.Name)),
                 m.Type);
         }

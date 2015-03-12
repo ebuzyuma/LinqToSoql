@@ -12,10 +12,6 @@ namespace LinqToSoql.Tests.Properties
     [TestFixture]
     public class SelectTests
     {
-        private const string Username = "ebuzyuma@linq.com";
-        private const string Password = "7229124,tf";
-        private const string Token = "rTC3Txi0gY4uGyxlJ8YyEIW5";
-
         private SforceContext _context;
 
         
@@ -23,7 +19,7 @@ namespace LinqToSoql.Tests.Properties
         public void Init()
         {
             //TODO use fake context
-            _context = new SforceContext(Username, Password, Token);
+            _context = new SforceContext(Constants.Username, Constants.Password, Constants.Token);
         }
 
         [Test]
@@ -104,29 +100,6 @@ namespace LinqToSoql.Tests.Properties
             var result = linq.ToList();
             Assert.That(result.Select(p => p.Products), Is.All.Not.Empty);
             Assert.That(result.Select(p => p.Category), Is.All.Not.Empty);
-        }        
-        
-        
-
-        [Test]
-        public void Where()
-        {
-            var name = "sForce";
-            var q =
-                from p in _context.GetTable<Account>()
-                where p.Name == name
-                select new {p.Name, p.Phone};
-
-            string soql = q.ToString();
-
-            StringAssert.Contains("WHERE", soql);
-            StringAssert.Contains(String.Format("Name = '{0}'",name), soql);
-            StringAssert.Contains("sForce", soql);
-
-            var res = q.ToList();
-
-            Assert.That(res, Is.Not.Empty);
-            Assert.That(res.Select(p => p.Name), Is.All.EqualTo(name));
         }
     }
 }
