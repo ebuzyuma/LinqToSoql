@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constants.cs" />
+    <Compile Include="LikeOperatorTests.cs" />
     <Compile Include="Models\Category__c.cs" />
     <Compile Include="Models\Product__c.cs" />
     <Compile Include="Models\Supplier__c.cs" />

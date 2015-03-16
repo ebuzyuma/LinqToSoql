@@ -19,7 +19,8 @@ namespace LinqToSoql.Tests.Properties
         public void Init()
         {
             //TODO use fake context
-            _context = new SforceContext(Constants.Username, Constants.Password, Constants.Token);
+            if (_context == null)
+                _context = new SforceContext(Constants.Username, Constants.Password, Constants.Token);
         }
 
         [Test]

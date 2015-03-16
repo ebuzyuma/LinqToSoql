@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using LinqToSoql.Expressions;
 
@@ -52,6 +53,36 @@ namespace LinqToSoql.Visitors
 
         protected override Expression VisitMethodCall(MethodCallExpression m)
         {
+            if (m.Method.Name == "Like")
+            {
+                Visit(m.Arguments[0]);
+                _stringBuilder.Append(" LIKE ");
+                Visit(m.Arguments[1]);
+                return m;
+            }
+            if (m.Method.DeclaringType == typeof (string))
+            {
+                Visit(m.Object);
+                _stringBuilder.Append(" LIKE ");
+
+                ConstantExpression ce = m.Arguments[0] as ConstantExpression;
+                if (ce == null)
+                    throw new ArgumentException("soql like pattern should be a constant value");
+                switch (m.Method.Name)
+                {
+                    case "StartsWith": 
+                        ce = Expression.Constant(ce.Value + "%");
+                        break;
+                    case "EndsWith":
+                        ce = Expression.Constant("%" + ce.Value);
+                        break;
+                    case "Contains":
+                        ce = Expression.Constant("%" + ce.Value + "%");
+                        break;
+                }
+                return Visit(ce);
+            }
+
             throw new NotSupportedException(String.Format("The method '{0}' is not supported", m.Method.Name));
         }
 
@@ -113,7 +144,7 @@ namespace LinqToSoql.Visitors
         {
             if (c.Value == null)
             {
-                _stringBuilder.Append("NULL");
+                _stringBuilder.Append("null");
             }
             else
             {
