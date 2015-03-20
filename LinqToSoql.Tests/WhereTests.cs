@@ -10,22 +10,11 @@ namespace LinqToSoql.Tests
     [TestFixture]
     public class WhereTests
     {
-        private static SforceContext _context;
-
-
-        [SetUp]
-        public void Init()
-        {
-            //TODO use fake context
-            if (_context == null)
-                _context = new SforceContext(Constants.Username, Constants.Password, Constants.Token);
-        }
-
         [Test]
         public void Simple()
         {
             var q =
-                from p in _context.GetTable<Product__c>()
+                from p in SforceManager.Context.GetTable<Product__c>()
                 where p.UnitPrice__c > 40
                 select p.UnitPrice__c;
 
@@ -46,7 +35,7 @@ namespace LinqToSoql.Tests
         {
             int value = 40;
             var q =
-                from p in _context.GetTable<Product__c>()
+                from p in SforceManager.Context.GetTable<Product__c>()
                 where p.UnitPrice__c > value
                 select p.UnitPrice__c;
 
@@ -67,7 +56,7 @@ namespace LinqToSoql.Tests
         public void NullParameter()
         {
             var q =
-                from p in _context.GetTable<Supplier__c>()
+                from p in SforceManager.Context.GetTable<Supplier__c>()
                 where p.Fax__c != null
                 select p.Fax__c;
 
@@ -87,7 +76,7 @@ namespace LinqToSoql.Tests
         public void BoolParameter([Values(true, false)]bool value)
         {
             var q =
-                from p in _context.GetTable<Product__c>()
+                from p in SforceManager.Context.GetTable<Product__c>()
                 where p.Discontinued__c == value
                 select new {p.Name, p.Discontinued__c};
 

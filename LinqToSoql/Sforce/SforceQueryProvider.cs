@@ -49,10 +49,13 @@ namespace LinqToSoql.Sforce
             TranslateResult result = Translate(expression);
 
             Delegate projector = result.Projector.Compile();
+            
+            Type modelType = result.Projector.Parameters[0].Type;
+            Type resultType = result.Projector.ReturnType;
 
             var executeMethod = _context.GetType()
                                 .GetMethod("ExecuteSoqlQuery")
-                                .MakeGenericMethod(result.Projector.ReturnType);
+                                .MakeGenericMethod(modelType, resultType);
             return executeMethod.Invoke(_context, new object[] { result.CommandText, projector });
         }
     }

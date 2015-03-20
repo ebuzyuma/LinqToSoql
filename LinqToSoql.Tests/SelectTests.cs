@@ -12,22 +12,11 @@ namespace LinqToSoql.Tests.Properties
     [TestFixture]
     public class SelectTests
     {
-        private SforceContext _context;
-
-        
-        [SetUp]
-        public void Init()
-        {
-            //TODO use fake context
-            if (_context == null)
-                _context = new SforceContext(Constants.Username, Constants.Password, Constants.Token);
-        }
-
         [Test]
         public void Simple()
         {
             var linq = 
-                from p in _context.GetTable<Category__c>()
+                from p in SforceManager.Context.GetTable<Category__c>()
                 select p.Name;
 
             string pattern = "SELECT t0.Name FROM Category__c AS t0";
@@ -41,12 +30,8 @@ namespace LinqToSoql.Tests.Properties
         public void Projection()
         {
             var linq =
-                from p in _context.GetTable<Category__c>()
+                from p in SforceManager.Context.GetTable<Category__c>()
                 select new {p.Name, p.Description__c};
-
-            var qwer =
-                from p in _context.GetTable<Category__c>()
-                select p;
 
             string pattern = "SELECT t0.Name, t0.Description__c FROM Category__c AS t0";
 
@@ -65,7 +50,7 @@ namespace LinqToSoql.Tests.Properties
         public void ChildToParentRelationShip()
         {
             var linq =
-                from p in _context.GetTable<Product__c>()
+                from p in SforceManager.Context.GetTable<Product__c>()
                 select new {Product = p.Name, Category = p.Category__r.Name};
 
             string pattern = "SELECT t0.Name, t0.Category__r.Name FROM Product__c AS t0";
@@ -84,7 +69,7 @@ namespace LinqToSoql.Tests.Properties
         {
             //TODO fix
             var linq =
-                from p in _context.GetTable<Category__c>()
+                from p in SforceManager.Context.GetTable<Category__c>()
                 select new
                        {
                            Category = p.Name,
@@ -92,11 +77,11 @@ namespace LinqToSoql.Tests.Properties
                                       select c.Name
                        };
 
-            string pattern = "SELECT t0.Name, (SELECT t1.Name FROM t0.Products__r AS t1) FROM Category__c AS t0";
+            string pattern = "SELECT t0.Name, (SELECT t2.Name FROM t0.Products__r AS t2 ) FROM Category__c AS t0";
 
-            string query = linq.ToString().Replace("\n", " ").Replace("\r", String.Empty);
+            string query = linq.ToString().Replace("\r", String.Empty).Replace("\n", String.Empty);
 
-            Assert.That(pattern, Is.EqualTo(query));
+            Assert.That(pattern.Replace(" ", String.Empty), Is.EqualTo(query.Replace(" ", String.Empty)));
 
             var result = linq.ToList();
             Assert.That(result.Select(p => p.Products), Is.All.Not.Empty);

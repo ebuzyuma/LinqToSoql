@@ -29,7 +29,8 @@ namespace LinqToSoql.Visitors
                 return CanBeColumn(memberExpression.Expression);
             }
 
-            return expression.NodeType == (ExpressionType)DbExpressionType.Column;
+            return expression.NodeType == (ExpressionType) DbExpressionType.Column
+                   || expression.NodeType == (ExpressionType) DbExpressionType.Projection;
         }
 
         public Expression Bind(Expression expression)
@@ -89,7 +90,17 @@ namespace LinqToSoql.Visitors
 
         private Expression BindSelect(Type resultType, Expression source, LambdaExpression selector)
         {
-            ProjectionExpression projection = (ProjectionExpression)Visit(source);
+            var v = Visit(source);
+            ProjectionExpression projection = v as ProjectionExpression;
+            if (projection == null)
+            {
+                var columnExpression = v as ColumnExpression;
+                if (columnExpression == null)
+                {
+                    throw new NotSupportedException(String.Format("'{0}' source is not supported!", v.NodeType));
+                }
+                projection = GetTableProjection(columnExpression);
+            }
             _map[selector.Parameters[0]] = projection.Projector;
             Expression expression = Visit(selector.Body);
             string alias = GetNextAlias();
@@ -98,6 +109,14 @@ namespace LinqToSoql.Visitors
                 new SelectExpression(resultType, alias, pc.Columns, projection.Source, null),
                 pc.Projector
                 );
+        }
+
+        private ProjectionExpression GetSubQueryProjection(ColumnExpression expression)
+        {
+            Type elementType = TypeSystem.GetElementType(expression.Type);
+            var obj = Activator.CreateInstance(typeof(Query<>).MakeGenericType(expression.Type),
+                             new object[] { _provider, expression });
+            return GetTableProjection(obj);
         }
 
         private static string GetExistingAlias(Expression source)
@@ -121,9 +140,13 @@ namespace LinqToSoql.Visitors
 
         private string GetTableName(object table)
         {
-            IQueryable tableQuery = (IQueryable)table;
-            Type rowType = tableQuery.ElementType;
-            return rowType.Name;
+            IQueryable query = table as IQueryable;
+            if (query != null)
+            {
+                return query.ElementType.Name;
+            }
+
+            throw new NotSupportedException(String.Format("'{0}' table is not supported", table.GetType().Name));
         }
 
         private string GetColumnName(MemberInfo member)
@@ -150,26 +173,40 @@ namespace LinqToSoql.Visitors
 
         private ProjectionExpression GetTableProjection(object value)
         {
-            IQueryable table = (IQueryable)value;
+            IQueryable table = value as IQueryable;
+            ColumnExpression columnExpression = value as ColumnExpression;
+            Type elementType;
+            if (table != null)
+            {
+                elementType = table.ElementType;
+            }
+            else if (columnExpression != null)
+            {
+                elementType = TypeSystem.GetElementType(columnExpression.Type);
+            }
+            else
+            {
+                throw new NotSupportedException(String.Format("'{0}' table is not supported!", value.GetType().Name));
+            }
             string tableAlias = GetNextAlias();
             string selectAlias = GetNextAlias();
             List<MemberBinding> bindings = new List<MemberBinding>();
             List<ColumnDeclaration> columns = new List<ColumnDeclaration>();
-            foreach (MemberInfo mi in GetMappedMembers(table.ElementType))
+            foreach (MemberInfo mi in GetMappedMembers(elementType))
             {
                 string columnName = GetColumnName(mi);
                 Type columnType = GetColumnType(mi);
                 bindings.Add(Expression.Bind(mi, new ColumnExpression(columnType, selectAlias, columnName)));
                 columns.Add(new ColumnDeclaration(columnName, new ColumnExpression(columnType, tableAlias, columnName)));
             }
-            Expression projector = Expression.MemberInit(Expression.New(table.ElementType), bindings);
-            Type resultType = typeof(IEnumerable<>).MakeGenericType(table.ElementType);
+            Expression projector = Expression.MemberInit(Expression.New(elementType), bindings);
+            Type resultType = typeof(IEnumerable<>).MakeGenericType(elementType);
             return new ProjectionExpression(
                 new SelectExpression(
                     resultType,
                     selectAlias,
                     columns,
-                    new TableExpression(resultType, tableAlias, GetTableName(table)),
+                    table != null? (Expression) new TableExpression(resultType, tableAlias, GetTableName(table)) : columnExpression,
                     null
                     ),
                 projector

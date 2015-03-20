@@ -2,7 +2,6 @@
 
 namespace LinqToSoql.Tests.Models
 {
-    [XmlRoot(Namespace = "urn:partner.soap.sforce.com")]
     public class Product__c
     {
         //TODO fix Nullable convertion

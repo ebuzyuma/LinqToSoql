@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -206,6 +207,12 @@ namespace LinqToSoql.Visitors
                 AppendNewLine(Identation.Same);
                 _stringBuilder.Append("FROM ");
                 VisitSource(select.From);
+                //TODO update DbExpressionTypes for handing column as table
+                if (select.From is ColumnExpression)
+                {
+                    _stringBuilder.Append(" AS ");
+                    _stringBuilder.Append(((ColumnExpression)select.Columns.First().Expression).Alias);
+                }
             }
             if (select.Where != null)
             {
@@ -240,13 +247,21 @@ namespace LinqToSoql.Visitors
                     AppendNewLine(Identation.Inner);
                     Visit(select);
                     AppendNewLine(Identation.Outer);
-                    _stringBuilder.Append(") AS ");
-                    _stringBuilder.Append(select.Alias);
+                    _stringBuilder.Append(")");
+                    break;
+                case DbExpressionType.Column:
+                    Visit(source);
                     break;
                 default:
                     throw new InvalidOperationException(String.Format("Select source '{0}' is not a valid type", source.NodeType));
             }
             return source;
+        }
+
+        protected override Expression VisitProjection(ProjectionExpression projection)
+        {
+            VisitSource(projection.Source);
+            return projection;
         }
     }
 }

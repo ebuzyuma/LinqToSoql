@@ -9,21 +9,11 @@ namespace LinqToSoql.Tests
     [TestFixture]
     public class LikeOperatorTests
     {
-        private SforceContext _context;
-
-        [SetUp]
-        public void Init()
-        {
-            //TODO use fake context
-            if (_context == null)
-                _context = new SforceContext(Constants.Username, Constants.Password, Constants.Token);
-        }
-
         [Test]
         public void StringExtention([Values("C%", "___food", "_e%")]string likePattern)
         {
             var linq =
-                from p in _context.GetTable<Category__c>()
+                from p in SforceManager.Context.GetTable<Category__c>()
                 where p.Name.Like(likePattern)
                 select p.Name;
 
@@ -40,7 +30,7 @@ namespace LinqToSoql.Tests
         public void StringStartsWith()
         {
             var linq =
-                from p in _context.GetTable<Category__c>()
+                from p in SforceManager.Context.GetTable<Category__c>()
                 where p.Name.StartsWith("C")
                 select p.Name;
 
@@ -58,7 +48,7 @@ namespace LinqToSoql.Tests
         public void StringEndsWith()
         {
             var linq =
-                from p in _context.GetTable<Category__c>()
+                from p in SforceManager.Context.GetTable<Category__c>()
                 where p.Name.EndsWith("ts")
                 select p.Name;
 
@@ -76,7 +66,7 @@ namespace LinqToSoql.Tests
         public void StringContains()
         {
             var linq =
-                from p in _context.GetTable<Category__c>()
+                from p in SforceManager.Context.GetTable<Category__c>()
                 where p.Name.Contains("ea")
                 select p.Name;
 

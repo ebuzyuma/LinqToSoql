@@ -155,6 +155,11 @@ namespace LinqToSoql.Visitors
                 }
                 return base.VisitMemberAccess(m);
             }
+
+            protected override Expression VisitProjection(ProjectionExpression projection)
+            {
+                return projection;
+            }
         }
     }
 }

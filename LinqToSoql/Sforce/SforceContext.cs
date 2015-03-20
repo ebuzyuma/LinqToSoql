@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Text.RegularExpressions;
@@ -60,25 +61,39 @@ namespace LinqToSoql.Sforce
             return new Query<TModel>(_queryProvider);
         }
 
-        public IEnumerable<TResult> ExecuteSoqlQuery<TResult>(string query, Func<sObject, TResult> projector)
+        public IEnumerable<TResult> ExecuteSoqlQuery<TModel, TResult>(string query, Func<TModel, TResult> projector) where TModel : class, new()
         {
             //TODO add Enumerator            
             QueryResult qr = _binding.queryAll(query);
-            var res = qr.records.Select(projector);
-            return res;
+            var res = qr.records.Select(Map<TModel>);
+            return res.Select(projector);
         }
 
         private T Map<T>(sObject obj) where T : class, new()
         {
-            string xmlns = "xmlns:sf='urn:partner.soap.sforce.com'";
-            string xmlnsPattern = "xmlns:sf=['\"][a-zA-Z.:]+['\"]";
+            var xmlDoc = obj.Any.Select(RemoveSForcePrefixAndAttributes);
             string root = obj.type;
-            string inner = String.Join("\n", obj.Any.Select(p => Regex.Replace(p.OuterXml, xmlnsPattern, String.Empty)));
-            string xml = String.Format("<sf:{0} {1}>{2}</sf:{3}>", root, xmlns, inner, root);
+            string inner = String.Join("\n", xmlDoc.Select(p => p.OuterXml));
+            string xml = String.Format("<{0}>{1}</{0}>", root, inner);
 
             var serializer = new XmlSerializer(typeof (T));
             var reader = new StringReader(xml);
             return serializer.Deserialize(reader) as T;
+        }
+
+        private XmlNode RemoveSForcePrefixAndAttributes(XmlElement obj)
+        {
+            XmlElement res = new XmlDocument().CreateElement(obj.LocalName);
+            foreach (object node in obj.ChildNodes)
+            {
+                XmlNode innerXml = node is XmlElement
+                    ? RemoveSForcePrefixAndAttributes((XmlElement) node)
+                    : ((XmlNode)node).Clone();
+
+                XmlNode importNode = res.OwnerDocument.ImportNode(innerXml, true);
+                res.AppendChild(importNode);
+            }
+            return res;
         }
 
         public void Dispose()

@@ -14,25 +14,18 @@ namespace LinqToSoql.Visitors
     internal class ProjectionBuilder : DbExpressionVisitor
     {
         private ParameterExpression _row;
-        private static MethodInfo _miGetValue;
         private Type _sourceType;
         private Dictionary<string, Expression> _columns;
-        private MethodInfo _miGetProperty;
 
         public ProjectionBuilder()
         {
-            if (_miGetValue == null || _miGetProperty == null)
-            {
-                _miGetValue = typeof (sObject).GetMethod("GetValue");
-                _miGetProperty = typeof (sObject).GetMethod("GetProperty");
-            }
         }
 
         public LambdaExpression Build(ProjectionExpression projection)
         {
             _columns = projection.Source.Columns.ToDictionary(p => p.Name, p => p.Expression);
-            //_sourceType = TypeSystem.GetElementType(projection.Source.From.Type);
-            _row = Expression.Parameter(typeof(sObject), "sObject");
+            _sourceType = TypeSystem.GetElementType(projection.Source.From.Type);
+            _row = Expression.Parameter(_sourceType, _sourceType.Name);
             Expression body = Visit(projection.Projector);
             
             return Expression.Lambda(body, _row);
@@ -45,10 +38,8 @@ namespace LinqToSoql.Visitors
             {
                 return Visit(sourceColumn);
             }
-            return 
-                Convert(
-                    Expression.Call(_row, _miGetValue, Expression.Constant(column.Name)),
-                    column.Type);
+            return
+                    Expression.Property(_row, column.Name);
         }
 
         private Expression Convert(Expression e, Type typeToConvert)
@@ -58,7 +49,7 @@ namespace LinqToSoql.Visitors
             return Expression.Convert(changedType, typeToConvert);
         }
 
-        protected override Expression VisitMemberAccess(MemberExpression m)
+        /*protected override Expression VisitMemberAccess(MemberExpression m)
         {
             Expression source;
             ColumnExpression column = m.Expression as ColumnExpression;
@@ -68,20 +59,29 @@ namespace LinqToSoql.Visitors
             }
             else
             {
-                source = Expression.Convert(
-                    Expression.Call(_row, _miGetProperty, Expression.Constant(column.Name)),
-                    typeof (sObject));
-
+                source = Expression.Property(_row, column.Name);
             }
 
             /*Type type = m.Type;
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
                 type = Nullable.GetUnderlyingType(m.Type);
-            }*/
+            }
             return Convert(
                 Expression.Call(source, _miGetValue, Expression.Constant(m.Member.Name)),
                 m.Type);
+        }*/
+
+        protected override Expression VisitProjection(ProjectionExpression projection)
+        {
+            SelectExpression source = (SelectExpression)Visit(projection.Source);
+            Expression projector = Visit(projection.Projector);
+            if (source != projection.Source || projector != projection.Projector)
+            {
+                return new ProjectionExpression(source, projector);
+            }
+            //return projection;
+            return Expression.Constant(5);
         }
     }
 }

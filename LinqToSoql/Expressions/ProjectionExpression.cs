@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
@@ -10,7 +11,7 @@ namespace LinqToSoql.Expressions
         public Expression Projector { get; private set; }
 
         public ProjectionExpression(SelectExpression source, Expression projector)
-            : base((ExpressionType) DbExpressionType.Projection,projector.Type)
+            : base((ExpressionType) DbExpressionType.Projection,typeof(IQueryable<>).MakeGenericType(projector.Type))
         {
             Source = source;
             Projector = projector;
