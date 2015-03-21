@@ -18,18 +18,20 @@ namespace LinqToSoql.Sforce
 
         private TranslateResult Translate(Expression expression)
         {
+            Expression modified;
             ProjectionExpression projection = expression as ProjectionExpression;
             if (projection == null)
             {
-                expression = Evaluator.PartialEval(expression, CanBeEvaluatedLocally);
-                expression = new QueryBinder(this).Bind(expression);
+                modified = Evaluator.PartialEval(expression, CanBeEvaluatedLocally);
+                modified = new QueryBinder(this).Bind(modified);
                 //expression = new OrderByRewriter().Rewrite(expression);
-                expression = new UnusedColumnRemover().Remove(expression);
-                expression = new RedundantSubqueryRemover().Remove(expression);
-                projection = (ProjectionExpression)expression;
+                modified = new UnusedColumnRemover().Remove(modified);
+                modified = new RedundantSubqueryRemover().Remove(modified);
+                projection = (ProjectionExpression)modified;
             }
             string commandText = new QueryFormatter().Format(projection.Source);
-            LambdaExpression projector = new ProjectionBuilder().Build(projection);
+            //LambdaExpression projector = new ProjectionBuilder().Build(projection);
+            LambdaExpression projector = ((UnaryExpression)((MethodCallExpression)expression).Arguments[1]).Operand as LambdaExpression;
             return new TranslateResult { CommandText = commandText, Projector = projector };
         }
 

@@ -2,11 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using System.Security.Authentication;
-using System.Text.RegularExpressions;
-using System.Web.Services.Protocols;
 using System.Xml;
 using System.Xml.Serialization;
 using LinqToSoql.PartnerSforce;
@@ -66,7 +62,7 @@ namespace LinqToSoql.Sforce
             //TODO add Enumerator            
             QueryResult qr = _binding.queryAll(query);
             var res = qr.records.Select(Map<TModel>);
-            return res.Select(projector);
+            return Enumerable.Select(res, projector);
         }
 
         private T Map<T>(sObject obj) where T : class, new()
@@ -81,16 +77,35 @@ namespace LinqToSoql.Sforce
             return serializer.Deserialize(reader) as T;
         }
 
-        private XmlNode RemoveSForcePrefixAndAttributes(XmlElement obj)
+        private XmlNode RemoveSForcePrefixAndAttributes(XmlNode obj)
         {
             XmlElement res = new XmlDocument().CreateElement(obj.LocalName);
             foreach (object node in obj.ChildNodes)
             {
-                XmlNode innerXml = node is XmlElement
-                    ? RemoveSForcePrefixAndAttributes((XmlElement) node)
-                    : ((XmlNode)node).Clone();
+                var xmlNode = (XmlNode) node;
 
-                XmlNode importNode = res.OwnerDocument.ImportNode(innerXml, true);
+                // current node should be replaced with corresponding object
+                if (xmlNode.LocalName == "records")
+                {
+                    var enumerator = xmlNode.ChildNodes.GetEnumerator();
+                    while (enumerator.MoveNext() && ((XmlNode) enumerator.Current).LocalName != "type");
+
+                    string type = ((XmlNode) enumerator.Current).InnerText;
+                    XmlElement elem = new XmlDocument().CreateElement(type);
+
+                    enumerator.Reset();
+                    while(enumerator.MoveNext())
+                    {
+                        var cur = RemoveSForcePrefixAndAttributes((XmlNode) enumerator.Current);
+                        cur = elem.OwnerDocument.ImportNode(cur, true);
+                        elem.AppendChild(cur);
+                    }
+                    xmlNode = elem;
+                }
+                else if(xmlNode is XmlElement)
+                    xmlNode = RemoveSForcePrefixAndAttributes(xmlNode);
+
+                XmlNode importNode = res.OwnerDocument.ImportNode(xmlNode, true);
                 res.AppendChild(importNode);
             }
             return res;

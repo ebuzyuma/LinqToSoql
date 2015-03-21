@@ -77,7 +77,7 @@ namespace LinqToSoql.Visitors
 
         private Expression BindWhere(Type resultType, Expression source, LambdaExpression predicate)
         {
-            ProjectionExpression projection = (ProjectionExpression)Visit(source);
+            ProjectionExpression projection = VisitSource(source);
             _map[predicate.Parameters[0]] = projection.Projector;
             Expression where = Visit(predicate.Body);
             string alias = GetNextAlias();
@@ -87,8 +87,21 @@ namespace LinqToSoql.Visitors
                 pc.Projector
                 );
         }
-
+        
         private Expression BindSelect(Type resultType, Expression source, LambdaExpression selector)
+        {
+            ProjectionExpression projection = VisitSource(source);
+            _map[selector.Parameters[0]] = projection.Projector;
+            Expression expression = Visit(selector.Body);
+            string alias = GetNextAlias();
+            ProjectedColumns pc = ProjectColumns(expression, alias, GetExistingAlias(projection.Source));
+            return new ProjectionExpression(
+                new SelectExpression(resultType, alias, pc.Columns, projection.Source, null),
+                pc.Projector
+                );
+        }
+
+        private ProjectionExpression VisitSource(Expression source)
         {
             var v = Visit(source);
             ProjectionExpression projection = v as ProjectionExpression;
@@ -101,14 +114,7 @@ namespace LinqToSoql.Visitors
                 }
                 projection = GetTableProjection(columnExpression);
             }
-            _map[selector.Parameters[0]] = projection.Projector;
-            Expression expression = Visit(selector.Body);
-            string alias = GetNextAlias();
-            ProjectedColumns pc = ProjectColumns(expression, alias, GetExistingAlias(projection.Source));
-            return new ProjectionExpression(
-                new SelectExpression(resultType, alias, pc.Columns, projection.Source, null),
-                pc.Projector
-                );
+            return projection;
         }
 
         private ProjectionExpression GetSubQueryProjection(ColumnExpression expression)
