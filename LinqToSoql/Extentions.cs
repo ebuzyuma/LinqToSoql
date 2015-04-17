@@ -35,13 +35,13 @@ namespace LinqToSoql
         /// <returns></returns>
         public static bool Like(this string input, string soqlPattern)
         {
-            return Regex.IsMatch(input, Tool.ToCSharpPattern(soqlPattern), RegexOptions.IgnoreCase);
+            return Regex.IsMatch(input, Tool.ToCSharRegex(soqlPattern), RegexOptions.IgnoreCase);
         }
     }
 
     public class Tool
     {
-        public static string ToCSharpPattern(string soqlPattern)
+        public static string ToCSharRegex(string soqlPattern)
         {
             const string exactlyOneWildcard = @"(?<!\\)_"; // for matching _ and not matching \_
             const string zeroOrMoreWildcard = @"(?<!\\)%"; // for matching % and not matching \%

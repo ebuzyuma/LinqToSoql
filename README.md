@@ -7,9 +7,10 @@ This is linq provider for [salesforce object query language](http://www.salesfor
  - Direct access to lookup field (ChildToParentRelationShip)
  - ParentToChildRelationShip
  - Where with base comparison and logical operators
- - LIKE operator: you can use StartsWith, EndsWith, Contains and Like(extention) methods with strings)
+ - LIKE operator: you can use StartsWith, EndsWith, Contains and Like(extention) methods with string
+ - IN and NOT IN
 
 ###ToDo's
- - SOQL comparison operators: IN, NOT IN, INCLUDES, EXCLUDES
+ - SOQL comparison operators: INCLUDES, EXCLUDES
  - fix nullable convertation
  - OrderBy

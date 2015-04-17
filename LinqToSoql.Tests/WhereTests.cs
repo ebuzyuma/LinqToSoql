@@ -2,13 +2,14 @@
 using System.Linq;
 using LinqToSoql.Sforce;
 using LinqToSoql.Tests.Models;
+using LinqToSoql.Tests.Utils;
 using Microsoft.SqlServer.Server;
 using NUnit.Framework;
 
 namespace LinqToSoql.Tests
 {
     [TestFixture]
-    public class WhereTests
+    public class WhereTests : TestsBase
     {
         [Test]
         public void Simple()
@@ -21,7 +22,7 @@ namespace LinqToSoql.Tests
             string expected = "SELECT t0.UnitPrice__c FROM Product__c AS t0 WHERE (t0.UnitPrice__c > 40)";
             string actual = linq.ToString();
 
-            Assert.That(actual.IsEqualIgnoreWhiteSpaces(expected));
+            Assert.That(actual, EqualTo(expected));
             
             var res = linq.ToList();
 
@@ -39,8 +40,8 @@ namespace LinqToSoql.Tests
 
             string expected = String.Format("SELECT t0.UnitPrice__c FROM Product__c AS t0 WHERE (t0.UnitPrice__c > {0})", value);
             string actual = linq.ToString();
-            
-            Assert.That(actual.IsEqualIgnoreWhiteSpaces(expected));
+
+            Assert.That(actual, EqualTo(expected));
 
 
             var res = linq.ToList();
@@ -60,7 +61,7 @@ namespace LinqToSoql.Tests
             string expected = "SELECT t0.Fax__c FROM Supplier__c AS t0 WHERE (t0.Fax__c != null)";
             string actual = linq.ToString();
 
-            Assert.That(actual.IsEqualIgnoreWhiteSpaces(expected));
+            Assert.That(actual, EqualTo(expected));
             
             var res = linq.ToList();
 
@@ -78,7 +79,7 @@ namespace LinqToSoql.Tests
             string expected = String.Format("SELECT t0.Name, t0.Discontinued__c FROM Product__c AS t0 WHERE (t0.Discontinued__c = {0})", value);
             string actual = linq.ToString();
 
-            Assert.That(actual.IsEqualIgnoreWhiteSpaces(expected));
+            Assert.That(actual, EqualTo(expected));
             
             var res = linq.ToList();
 
@@ -96,7 +97,7 @@ namespace LinqToSoql.Tests
             string expected = "SELECT t0.Name, t0.Category__r.Name FROM Product__c AS t0 WHERE t0.Category__r.Name LIKE 'C%' ";
             string actual = linq.ToString();
 
-            Assert.That(expected.IsEqualIgnoreWhiteSpaces(actual));
+            Assert.That(expected, EqualTo(actual));
 
             var result = linq.ToList();
             Assert.That(result.Select(p => p.Category), Is.All.StartsWith("C"));
@@ -124,7 +125,7 @@ namespace LinqToSoql.Tests
                 "FROM Category__c AS t0";
 
             string query = linq.ToString();
-            Assert.That(query.IsEqualIgnoreWhiteSpaces(pattern));
+            Assert.That(query, EqualTo(pattern));
 
             var result = linq.ToList();
             Assert.That(result.SelectMany(p => p.Products.Select(c => c.UnitPrice__c)), Is.All.LessThan(10));

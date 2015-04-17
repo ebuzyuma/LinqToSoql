@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using LinqToSoql.Sforce;
 using LinqToSoql.Tests.Models;
+using LinqToSoql.Tests.Utils;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 
 namespace LinqToSoql.Tests
 {

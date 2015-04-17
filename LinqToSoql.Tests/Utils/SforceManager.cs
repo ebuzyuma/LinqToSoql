@@ -1,6 +1,6 @@
 ﻿using LinqToSoql.Sforce;
 
-namespace LinqToSoql.Tests
+namespace LinqToSoql.Tests.Utils
 {
     public class SforceManager
     {

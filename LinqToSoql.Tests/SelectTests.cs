@@ -4,13 +4,15 @@ using FakeItEasy;
 using FakeItEasy.ExtensionSyntax.Full;
 using LinqToSoql.Sforce;
 using LinqToSoql.Tests.Models;
+using LinqToSoql.Tests.Utils;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 
 namespace LinqToSoql.Tests.Properties
 {
 
     [TestFixture]
-    public class SelectTests
+    public class SelectTests : TestsBase
     {
         [Test]
         public void Simple()
@@ -22,7 +24,7 @@ namespace LinqToSoql.Tests.Properties
             string expected = "SELECT t0.Name FROM Category__c AS t0";
             string actual = linq.ToString();
 
-            Assert.That(actual.IsEqualIgnoreWhiteSpaces(expected));
+            Assert.That(actual, EqualTo(expected));
         }
 
         [Test]
@@ -35,7 +37,7 @@ namespace LinqToSoql.Tests.Properties
             string expected = "SELECT t0.Name, t0.Description__c FROM Category__c AS t0";
             string actual = linq.ToString();
 
-            Assert.That(actual.IsEqualIgnoreWhiteSpaces(expected));
+            Assert.That(actual,  EqualTo(expected));
             
             var result = linq.ToList();
 
@@ -53,7 +55,7 @@ namespace LinqToSoql.Tests.Properties
             string expected = "SELECT t0.Name, t0.Category__r.Name FROM Product__c AS t0";
             string actual = linq.ToString();
 
-            Assert.That(actual.IsEqualIgnoreWhiteSpaces(expected));
+            Assert.That(actual, EqualTo(expected));
 
             var result = linq.ToList();
             Assert.That(result.Select(p => p.Product), Is.All.Not.Empty);
@@ -76,11 +78,12 @@ namespace LinqToSoql.Tests.Properties
 
             string actual = linq.ToString();
 
-            Assert.That(actual.IsEqualIgnoreWhiteSpaces(expected));
+            Assert.That(actual, EqualTo(expected));
 
             var result = linq.ToList();
             Assert.That(result.Select(p => p.Products), Is.All.Not.Empty);
             Assert.That(result.Select(p => p.Category), Is.All.Not.Empty);
         }
+
     }
 }
