@@ -37,7 +37,7 @@ namespace LinqToSoql
         /// <summary>
         /// Evaluates & replaces sub-trees when first candidate is reached (top-down)
         /// </summary>
-        private class SubtreeEvaluator : ExpressionVisitor
+        private class SubtreeEvaluator : DbExpressionVisitor
         {
             private readonly HashSet<Expression> _candidates;
 
@@ -80,7 +80,7 @@ namespace LinqToSoql
         /// Performs bottom-up analysis to determine which nodes can possibly
         /// be part of an evaluated sub-tree.
         /// </summary>
-        private class Nominator : ExpressionVisitor
+        private class Nominator : DbExpressionVisitor
         {
             private readonly Func<Expression, bool> _fnCanBeEvaluated;
             private HashSet<Expression> _candidates;

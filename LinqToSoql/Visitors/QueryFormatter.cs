@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
@@ -84,6 +86,19 @@ namespace LinqToSoql.Visitors
                 return Visit(ce);
             }
 
+            if (m.Method.Name == "Contains")
+            {
+                Visit(m.Arguments[0]);
+
+                _stringBuilder.Append(" IN (");
+                AppendNewLine(Identation.Inner);
+                Visit(m.Object);
+                AppendNewLine(Identation.Outer);
+                _stringBuilder.Append(")");
+                
+                return m;
+            }
+
             throw new NotSupportedException(String.Format("The method '{0}' is not supported", m.Method.Name));
         }
 
@@ -92,6 +107,18 @@ namespace LinqToSoql.Visitors
             switch (u.NodeType)
             {
                 case ExpressionType.Not:
+                    var m = u.Operand as MethodCallExpression;
+                    if (m != null && m.Method.Name == "Contains") 
+                    {
+                        Visit(m.Arguments[0]);
+
+                        _stringBuilder.Append(" NOT IN (");
+                        AppendNewLine(Identation.Inner);
+                        Visit(m.Object);
+                        AppendNewLine(Identation.Outer);
+                        _stringBuilder.Append(")");
+                        return m;
+                    }
                     _stringBuilder.Append(" NOT ");
                     Visit(u.Operand);
                     break;
@@ -162,7 +189,20 @@ namespace LinqToSoql.Visitors
                         _stringBuilder.Append(((DateTime)c.Value).ToUniversalTime().ToString("yyyy-MM-dd")); //TODO differentiate date(e g 2000-12-12) and date/time(yyyy-MM-ddThh:mm:ssZ, e g 2001-11-11T10:10:15Z) format for soql
                         break;
                     case TypeCode.Object:
-                        throw new NotSupportedException(String.Format("The constant for '{0}' is not supported", c.Value));
+                        var collection = c.Value as IEnumerable<object>;
+                        if (collection != null)
+                        {
+                            var enumerator = collection.GetEnumerator();
+                            if (enumerator.MoveNext())                                
+                                _stringBuilder.AppendFormat("'{0}'", enumerator.Current);
+                            while (enumerator.MoveNext())
+                            {
+                                _stringBuilder.AppendFormat(", '{0}'", enumerator.Current);
+                            }
+                            break;
+                        }
+                        else
+                            throw new NotSupportedException(String.Format("The constant for '{0}' is not supported", c.Value));
                     default:
                         _stringBuilder.Append(c.Value);
                         break;

@@ -74,6 +74,11 @@ namespace LinqToSoql.Visitors
 
         protected override Expression VisitProjection(ProjectionExpression projection)
         {
+            return new ProjectionBuilder().Build(projection);
+            _sourceType = TypeSystem.GetElementType(projection.Source.From.Type);
+            _row = Expression.Parameter(_sourceType, _sourceType.Name);
+            Expression body = Visit(projection.Projector);
+
             SelectExpression source = (SelectExpression)Visit(projection.Source);
             Expression projector = Visit(projection.Projector);
             if (source != projection.Source || projector != projection.Projector)

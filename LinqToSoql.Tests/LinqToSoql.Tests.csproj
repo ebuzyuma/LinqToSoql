@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="Constants.cs" />
     <Compile Include="Extentions.cs" />
+    <Compile Include="InAndNotInOperatorTests.cs" />
     <Compile Include="LikeOperatorTests.cs" />
     <Compile Include="Models\Category__c.cs" />
     <Compile Include="Models\Product__c.cs" />

@@ -18,11 +18,10 @@ namespace LinqToSoql.Sforce
 
         private TranslateResult Translate(Expression expression)
         {
-            Expression modified;
             ProjectionExpression projection = expression as ProjectionExpression;
             if (projection == null)
             {
-                modified = Evaluator.PartialEval(expression, CanBeEvaluatedLocally);
+                Expression modified = Evaluator.PartialEval(expression, CanBeEvaluatedLocally);
                 modified = new QueryBinder(this).Bind(modified);
                 //expression = new OrderByRewriter().Rewrite(expression);
                 modified = new UnusedColumnRemover().Remove(modified);

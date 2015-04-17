@@ -73,8 +73,8 @@ namespace LinqToSoql.Tests
             string likePattern = "%ea%";
             string pattern = String.Format("SELECT t0.Name FROM Category__c AS t0 WHERE t0.Name LIKE '{0}'", likePattern);
 
-            string query = linq.ToString().Replace("\n", " ").Replace("\r", String.Empty);
-            Assert.That(pattern, Is.EqualTo(query));
+            string query = linq.ToString();
+            Assert.That(pattern.IsEqualIgnoreWhiteSpaces(query));
 
             var res = linq.ToList();
             Assert.That(res, Is.All.Matches(Tool.ToCSharpPattern(likePattern)));
